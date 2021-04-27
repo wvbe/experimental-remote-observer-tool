@@ -4,14 +4,21 @@ import { exec } from '../../deps.ts';
 export class GitStatus {
 	public commitsAhead: string[] = [];
 	public commitsBehind: string[] = [];
-	public filesModified: string[] = [];
+	public filesModified: {
+		chmodAfter: string;
+		chmodBefore: string;
+		hashBefore: string;
+		hashAfter: string;
+		changeType: string;
+		fileName: string;
+	}[] = [];
 
 	get hasDiverged(): boolean {
 		return Boolean(this.commitsAhead.length && this.commitsBehind.length);
 	}
 
 	static async betweenHeadAndRemoteMain() {
-		return GitStatus.betweenHeads('origin/' + MAIN_BRANCH_NAME);
+		return await GitStatus.betweenHeads('origin/' + MAIN_BRANCH_NAME);
 	}
 
 	static async betweenHeads(otherHead = 'origin/HEAD') {
@@ -20,7 +27,7 @@ export class GitStatus {
 		instance.commitsAhead = (await exec(`git rev-list ${otherHead}..`)).split('\n');
 		instance.filesModified = (await exec(`git diff-tree -r HEAD..${otherHead}`))
 			.split('\n')
-			.map((line) => line.split(/\s+/))
+			.map(line => line.split(/\s+/))
 			.map(([chmodBefore, chmodAfter, hashBefore, hashAfter, changeType, ...fileName]) => ({
 				chmodAfter,
 				chmodBefore,

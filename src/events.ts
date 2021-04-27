@@ -1,3 +1,6 @@
 import { EventEmitter } from './util/EventEmitter.ts';
 
-export default new EventEmitter();
+const EVENTS = new EventEmitter();
+EVENTS.silent = false;
+
+export default EVENTS;

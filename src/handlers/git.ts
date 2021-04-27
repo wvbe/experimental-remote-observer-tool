@@ -4,12 +4,22 @@ import EVENTS from '../events.ts';
 import { getCommitHashesThatDiffer } from '../util/getGitStatus.ts';
 import { getFilesChangedByOtherPeople } from '../util/getConflictStatus.ts';
 
+export async function runGitVersionCheckHandler() {
+	try {
+		await exec('git --version');
+	} catch (e) {
+		console.log('Fatal error determining Git version, quitting program');
+		console.log(e.stack);
+		Deno.exit();
+	}
+}
+
 export async function runFetchAllHandler() {
 	await exec('git fetch origin HEAD');
 	await EVENTS.emit('fetched');
 }
 
-export async function runCompareCommitsHandler() {
+export async function emitCommitComparedEvents() {
 	const behindOnRemote = (await getCommitHashesThatDiffer('HEAD', '@{u}')).length;
 	const aheadOnRemote = (await getCommitHashesThatDiffer('@{u}', 'HEAD')).length;
 
@@ -26,13 +36,14 @@ export async function runCompareCommitsHandler() {
 }
 
 const collidableFiles: string[] = [];
-export async function runDetectCollidableFilesHandler() {
-	const f = Object.keys(await getFilesChangedByOtherPeople());
-	const filesOld = collidableFiles.filter((n) => !f.includes(n));
-	const filesNew = f.filter((n) => !collidableFiles.includes(n));
 
-	filesOld.forEach((n) => collidableFiles.splice(collidableFiles.indexOf(n), 1));
-	filesNew.forEach((n) => collidableFiles.push(n));
+export async function emitCollidingFileEvents() {
+	const f = Object.keys(await getFilesChangedByOtherPeople());
+	const filesOld = collidableFiles.filter(n => !f.includes(n));
+	const filesNew = f.filter(n => !collidableFiles.includes(n));
+
+	filesOld.forEach(n => collidableFiles.splice(collidableFiles.indexOf(n), 1));
+	filesNew.forEach(n => collidableFiles.push(n));
 
 	const events = [];
 	if (filesOld.length) {

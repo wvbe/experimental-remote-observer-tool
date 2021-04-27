@@ -1,4 +1,6 @@
 const HELP_DESCRIPTION_BY_COMMAND: { [key: string]: string } = {
+	feature: 'Sho the current feature branch status',
+	'feature close': 'Finish and integrate a feature',
 	'feature <issue ID>': 'Create a new feature branch for this issue number',
 	help: 'Show this help text again',
 	exit: 'Quit the process',

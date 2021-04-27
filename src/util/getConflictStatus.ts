@@ -13,6 +13,11 @@ export async function getFilesChangedByOtherPeople(): Promise<TreeishFileHashCom
 		remoteBranches.map(async (treeish) => {
 			const changedFiles = await getFileHashesThatDiffer('HEAD', treeish);
 			changedFiles.forEach((i) => {
+				// if (i.hash.split('').every((char) => char === '0')) {
+				// 	// Hash "00000.." means that file does not exist (on the remote)
+				// 	// Assuming there will be no merge conflict
+				// 	return;
+				// }
 				if (!fileChanges[i.file]) {
 					fileChanges[i.file] = {};
 				}

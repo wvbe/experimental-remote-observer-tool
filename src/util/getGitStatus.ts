@@ -28,6 +28,7 @@ export async function getFileHashes(treeish = 'HEAD'): Promise<FileHash[]> {
 	return (await exec(`git ls-tree -r ${treeish}`))
 		.split('/n')
 		.map(line => line.split(/\s+/))
+		.filter(Boolean)
 		.map(([_chmod, _changeType, hash, ...fileParts]) => ({
 			// Contains a bug, if a file contains more than one consecutive space
 			// those are flattened to just a single space
@@ -45,6 +46,7 @@ export async function getFileHashesThatDiffer(
 		.split('\n')
 		.filter(line => !!line)
 		.map(line => line.split(/\s+/))
+		.filter(Boolean)
 		.map(([_chmodLeft, _chmodRight, _hashLeft, hashRight, _changeType, ...fileParts]) => ({
 			// Contains a bug, if a file contains more than one consecutive space
 			// those are flattened to just a single space
@@ -57,7 +59,10 @@ export async function getCommitHashesThatDiffer(
 	commitishLeft = 'HEAD',
 	commitishRight = 'origin/HEAD'
 ): Promise<Treeish[]> {
-	return (await exec(`git rev-list ${commitishLeft}..${commitishRight}`)).trim().split('\n');
+	return (await exec(`git rev-list ${commitishLeft}..${commitishRight}`))
+		.trim()
+		.split('\n')
+		.filter(Boolean);
 }
 
 export async function getRemoteBranchNames(): Promise<Treeish[]> {

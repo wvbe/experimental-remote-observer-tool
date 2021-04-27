@@ -20,16 +20,18 @@ export async function runFetchAllHandler() {
 }
 
 export async function emitCommitComparedEvents() {
-	const behindOnRemote = (await getCommitHashesThatDiffer('HEAD', '@{u}')).length;
-	const aheadOnRemote = (await getCommitHashesThatDiffer('@{u}', 'HEAD')).length;
+	const behindOnRemote = await getCommitHashesThatDiffer('HEAD', '@{u}');
+	const aheadOnRemote = await getCommitHashesThatDiffer('@{u}', 'HEAD');
 
-	if (aheadOnRemote && behindOnRemote) {
+	if (aheadOnRemote.length && behindOnRemote.length) {
+		console.log(aheadOnRemote);
+		console.log(behindOnRemote);
 		await EVENTS.emit('diverged');
 		// @TODO Branches have diverged. Complicated system to figure out which commits are shared
-	} else if (behindOnRemote) {
+	} else if (behindOnRemote.length) {
 		await EVENTS.emit('behind');
 		// @TODO Stash, pull, unstash
-	} else if (aheadOnRemote) {
+	} else if (aheadOnRemote.length) {
 		await EVENTS.emit('ahead');
 		// @TODO Push
 	}
